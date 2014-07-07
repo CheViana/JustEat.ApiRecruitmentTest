@@ -5,8 +5,8 @@ namespace JustEat.RecruitmentTest.App.Tests
 {
     public class ConsoleOutput : IDisposable
     {
-        private StringWriter stringWriter;
-        private TextWriter originalOutput;
+        private readonly TextWriter originalOutput;
+        private readonly StringWriter stringWriter;
 
         public ConsoleOutput()
         {
@@ -15,15 +15,15 @@ namespace JustEat.RecruitmentTest.App.Tests
             Console.SetOut(stringWriter);
         }
 
-        public string GetOuput()
-        {
-            return stringWriter.ToString();
-        }
-
         public void Dispose()
         {
             Console.SetOut(originalOutput);
             stringWriter.Dispose();
+        }
+
+        public string GetOuput()
+        {
+            return stringWriter.ToString();
         }
     }
 }

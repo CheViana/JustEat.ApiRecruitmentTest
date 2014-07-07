@@ -1,5 +1,5 @@
-﻿using StructureMap;
-using RestSharp;
+﻿using RestSharp;
+using StructureMap;
 
 namespace JustEat.RecruitmentTest.App.Business
 {
@@ -9,7 +9,7 @@ namespace JustEat.RecruitmentTest.App.Business
         {
             ObjectFactory.Initialize(x => x.For<IJustEatService>().Use<JustEatService>()
                 .Ctor<IRestClient>("client").Is(new RestClient("http://api-interview.just-eat.com/"))
-                .Ctor<IRestRequest>("request").Is(new RestRequest("restaurants",Method.GET)));
+                .Ctor<IRestRequest>("request").Is(new RestRequest("restaurants", Method.GET)));
         }
     }
 }

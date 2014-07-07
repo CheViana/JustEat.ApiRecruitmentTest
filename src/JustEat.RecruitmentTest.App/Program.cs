@@ -1,5 +1,4 @@
-﻿using System;
-using JustEat.RecruitmentTest.App.Business;
+﻿using JustEat.RecruitmentTest.App.Business;
 using StructureMap;
 
 namespace JustEat.RecruitmentTest.App
@@ -10,13 +9,11 @@ namespace JustEat.RecruitmentTest.App
         {
             IoCContainer.Init();
         }
+
         public static void Main(string[] args)
         {
             var app = new Application(ObjectFactory.GetInstance<IJustEatService>());
             app.Run(args.Length > 0 ? args[0] : null);
-        }        
+        }
     }
-
 }
-
-

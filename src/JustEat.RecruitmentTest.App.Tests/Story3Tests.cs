@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using JustEat.RecruitmentTest.App.Business;
+﻿using JustEat.RecruitmentTest.App.Business;
 using JustEat.RecruitmentTest.App.Models;
 using NUnit.Framework;
 
@@ -26,7 +20,7 @@ namespace JustEat.RecruitmentTest.App.Tests
         {
             //Arrange
             var restaurant = new Restaurant() { Name = "name", Ratings = 3, CuisineTypes = new[] { "type1", "type2" } };
-            var restToStringExpected = "* Name name \n Ratings 3 \n Cuisines type1 type2  \n";
+            const string restToStringExpected = "* Name name \n  Ratings 3 \n  Cuisines type1 type2  \n";
             
             //Act
             var actual = restaurant.ToString();

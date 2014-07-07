@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
+using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JustEat.RecruitmentTest.App.Business;
+using JustEat.RecruitmentTest.App.Models;
+using Newtonsoft.Json;
+using NSubstitute;
 using NUnit.Framework;
+using RestSharp;
 
 namespace JustEat.RecruitmentTest.App.Tests
 {
@@ -21,45 +22,60 @@ namespace JustEat.RecruitmentTest.App.Tests
     [TestFixture]
     public class Story4Tests
     {
+        //test for displaying on console
         [TestCase("se19")]
         public void CheckRestaurantsOutputtedOnScreen(string code)
         {
+
+            if(CultureInfo.InstalledUICulture.Name!="ua-UA" && CultureInfo.InstalledUICulture.Name!="ru-RU") Assert.Inconclusive("Another system language then the required for this test (ua or ru)");
+            
             //Arrange
-            var target = new JustEatService(new RestSharp.RestClient("http://api-interview.just-eat.com/"), new RestSharp.RestRequest("restaurants", RestSharp.Method.GET));
-            var restaurants = target.GetRestaurants(code);
-            var restaurantsExpected = new List<string>();
-            foreach (var restaurant in restaurants)
+            var stubbedRestaurants = new[]
             {
-                restaurantsExpected.Add(restaurant.ToString().Replace("*",""));
-            }
-
-
+                new {Name = "U Holema", RatingStars = 5.0, CuisineTypes = new dynamic[] {new{Name="Czech"}, new{Name="Beer pub"}}},
+                 new {Name = "BeerTime", RatingStars = 3.7, CuisineTypes = new dynamic[] {new{Name="European"}}}
+            };
+            var stubbedResponseContent = new {Restaurants = stubbedRestaurants};
+            var stubResponse = new RestResponse {Content = JsonConvert.SerializeObject(stubbedResponseContent)};
+            var stubClient = Substitute.For<IRestClient>();
+            stubClient.Execute(new RestRequest()).ReturnsForAnyArgs(stubResponse);
+            var service = new JustEatService(stubClient, new RestRequest());
             var currentConsoleOut = Console.Out;
             using (var consoleOutput = new ConsoleOutput())
             {
+                var application = new Application(service);
+                
                 //Act
-                Program.Main(new[] { code });
+                application.Run(code);
                 var actual = consoleOutput.GetOuput();
-                var parts = actual.Split('*');
-                var restaurantsPrinted = parts.Where(p => p.Contains("Name"));
-                Assert.AreEqual(restaurantsExpected, restaurantsPrinted);
+                
+                //Assert
+                foreach (var rest in stubbedRestaurants)
+                {
+                    Assert.True(actual.Contains(rest.Name));
+                    Assert.True(actual.Contains(rest.RatingStars+""));
+                    foreach(var cuisine in rest.CuisineTypes)
+                    Assert.True(actual.Contains((string)cuisine.Name));
+                }
             }
             Assert.AreEqual(currentConsoleOut, Console.Out);
         }
 
+        //test for ordering
         [TestCase("se19")]
         public void CheckRestaurantsOrder(string code)
         {
             //Arrange
-            var target = new JustEatService(new RestSharp.RestClient("http://api-interview.just-eat.com/"), new RestSharp.RestRequest("restaurants", RestSharp.Method.GET));
+            var target = new JustEatService(new RestClient("http://api-interview.just-eat.com/"), new RestRequest("restaurants", Method.GET));
             
             //Act
             var rests = target.GetRestaurants(code);
 
             //Assert
-            for (int i = 0; i < rests.Count()-1; i++)
+            var restaurants = rests as Restaurant[] ?? rests.ToArray();
+            for (int i = 0; i < restaurants.Count()-1; i++)
             {
-                Assert.True(rests.ElementAt(i).Ratings >= rests.ElementAt(i+1).Ratings);
+                Assert.True(restaurants.ElementAt(i).Ratings >= restaurants.ElementAt(i+1).Ratings);
             }
         }
     }

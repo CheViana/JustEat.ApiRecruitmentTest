@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JustEat.RecruitmentTest.App.Business;
+using NSubstitute;
 using NUnit.Framework;
+using RestSharp;
 
 namespace JustEat.RecruitmentTest.App.Tests
 {
@@ -39,34 +37,34 @@ namespace JustEat.RecruitmentTest.App.Tests
         public bool JustServiceCallIntegration(string code)
         {
             //Arrange
-            var target = new JustEatService(new RestSharp.RestClient("http://api-interview.just-eat.com/"), new RestSharp.RestRequest("restaurants", RestSharp.Method.GET));
+            var target = new JustEatService(new RestClient("http://api-interview.just-eat.com/"), new RestRequest("restaurants", Method.GET));
             
             //Act
             var restaurants = target.GetRestaurants(code);
 
             //Assert
-            return restaurants.Count() > 0;
+            return restaurants.Any();
         }
 
         [TestCase("se19")]
         [TestCase("somecode")]
+        [TestCase("")]
         public void RunMainWithCorrectCodeCheckHeaders(string code)
         {
             //Arange
-            var target = new JustEatService(new RestSharp.RestClient("http://api-interview.just-eat.com/"), new RestSharp.RestRequest("restaurants", RestSharp.Method.GET));
-            var expectedRequest = new RestSharp.RestRequest("restaurants", RestSharp.Method.GET);
-            expectedRequest.AddParameter("q", code);
-            expectedRequest.AddHeader("Accept-Tenant", "uk");
-            expectedRequest.AddHeader("Accept-Language", "en-GB");
-            expectedRequest.AddHeader("Accept-Charset", "utf-8");
-            expectedRequest.AddHeader("Authorization", "Basic VGVjaFRlc3RBUEk6dXNlcjI=");
-            expectedRequest.AddHeader("Host", "api-interview.just-eat.com");
+            var requestStub = Substitute.For<IRestRequest>();
+
+            var target = new JustEatService(new RestClient("http://api-interview.just-eat.com/"), requestStub);
 
             //Act
-            var request = target.CreateRequest(code);
+            target.CreateRequest(code);
             
             //Assert
-            Assert.AreEqual(expectedRequest, request);
+            requestStub.Received().AddHeader("Accept-Tenant", "uk");
+            requestStub.Received().AddHeader("Accept-Language", "en-GB");
+            requestStub.Received().AddHeader("Accept-Charset", "utf-8");
+            requestStub.Received().AddHeader("Authorization", "Basic VGVjaFRlc3RBUEk6dXNlcjI=");
+            requestStub.Received().AddHeader("Host", "api-interview.just-eat.com");
         }        
     }
 }

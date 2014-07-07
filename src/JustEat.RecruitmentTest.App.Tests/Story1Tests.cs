@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using JustEat.RecruitmentTest.App.Business;
+﻿using JustEat.RecruitmentTest.App.Business;
 using JustEat.RecruitmentTest.App.Models;
 using NSubstitute;
 using NUnit.Framework;
+using RestSharp;
 
 namespace JustEat.RecruitmentTest.App.Tests
 {
@@ -23,11 +19,11 @@ namespace JustEat.RecruitmentTest.App.Tests
     {
         [TestCase("se19")]
         [TestCase("somecode")]
-        public void CheckCodeAcceptance(string code)
+        [TestCase("")]
+        public void CheckCodeAcceptanceInService(string code)
         {
             //Arrange            
             var stub = Substitute.For<IJustEatService>();
-            stub.CreateRequest(code).Returns(new RestSharp.RestRequest());
             stub.GetRestaurants(code).Returns(new Restaurant[0]);
             var app = new Application(stub);
 
@@ -35,9 +31,25 @@ namespace JustEat.RecruitmentTest.App.Tests
             app.Run(code);
 
             //Assert
-            stub.GetRestaurants(code).Received();
-            stub.CreateRequest(code).Received();
+            stub.Received().GetRestaurants(code);
         }
 
+
+        [TestCase("se19")]
+        [TestCase("somecode")]
+        [TestCase("")]
+        public void CheckCodeAppearInRequest(string code)
+        {
+            //Arange
+            var requestStub = Substitute.For<IRestRequest>();
+
+            var target = new JustEatService(new RestClient("http://api-interview.just-eat.com/"), requestStub);
+
+            //Act
+            target.CreateRequest(code);
+
+            //Assert
+            requestStub.Received().AddParameter("q", code);
+        }
     }
 }
