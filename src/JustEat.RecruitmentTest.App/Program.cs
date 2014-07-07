@@ -1,17 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using JustEat.RecruitmentTest.App.Business;
+using StructureMap;
 
 namespace JustEat.RecruitmentTest.App
 {
     public class Program
     {
+        static Program()
+        {
+            IoCContainer.Init();
+        }
         public static void Main(string[] args)
         {
-            Console.WriteLine("Press ANY key to exit...");
-            Console.ReadLine();
-        }
+            var app = new Application(ObjectFactory.GetInstance<IJustEatService>());
+            app.Run(args.Length > 0 ? args[0] : null);
+        }        
     }
+
 }
+
+
